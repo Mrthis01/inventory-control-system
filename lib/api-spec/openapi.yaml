@@ -1,0 +1,452 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Inventory Control System API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: dashboard
+  - name: products
+  - name: categories
+  - name: suppliers
+  - name: customers
+  - name: movements
+  - name: reports
+  - name: insights
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /dashboard:
+    get:
+      operationId: getDashboard
+      tags: [dashboard]
+      summary: Get inventory dashboard summary
+      responses:
+        "200":
+          description: Dashboard summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Dashboard"
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      summary: List products
+      parameters:
+        - name: search
+          in: query
+          schema: { type: string }
+        - name: category
+          in: query
+          schema: { type: string }
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [all, in_stock, low_stock, out_of_stock]
+      responses:
+        "200":
+          description: Product list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Product" }
+    post:
+      operationId: createProduct
+      tags: [products]
+      summary: Create a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProductInput" }
+      responses:
+        "201":
+          description: Created product
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Product" }
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      summary: Get a product
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "200":
+          description: Product
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Product" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      operationId: updateProduct
+      tags: [products]
+      summary: Update a product
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProductUpdate" }
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Product" }
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      summary: Delete an unreferenced product
+      parameters:
+        - $ref: "#/components/parameters/Id"
+      responses:
+        "204": { description: Deleted }
+        "409": { $ref: "#/components/responses/Conflict" }
+  /categories:
+    get:
+      operationId: listCategories
+      tags: [categories]
+      summary: List categories
+      responses:
+        "200":
+          description: Category list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Category" }
+    post:
+      operationId: createCategory
+      tags: [categories]
+      summary: Create a category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CategoryInput" }
+      responses:
+        "201":
+          description: Created category
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Category" }
+  /suppliers:
+    get:
+      operationId: listSuppliers
+      tags: [suppliers]
+      summary: List suppliers
+      responses:
+        "200":
+          description: Supplier list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Supplier" }
+    post:
+      operationId: createSupplier
+      tags: [suppliers]
+      summary: Create a supplier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SupplierInput" }
+      responses:
+        "201":
+          description: Created supplier
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Supplier" }
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      summary: List customers
+      responses:
+        "200":
+          description: Customer list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Customer" }
+    post:
+      operationId: createCustomer
+      tags: [customers]
+      summary: Create a customer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CustomerInput" }
+      responses:
+        "201":
+          description: Created customer
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Customer" }
+  /movements:
+    get:
+      operationId: listMovements
+      tags: [movements]
+      summary: List stock movements
+      responses:
+        "200":
+          description: Movement history
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Movement" }
+  /reports:
+    get:
+      operationId: getReports
+      tags: [reports]
+      summary: Get report metrics
+      responses:
+        "200":
+          description: Report metrics
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Reports" }
+  /insights:
+    get:
+      operationId: getDatabaseInsights
+      tags: [insights]
+      summary: Get DBMS concepts used by the system
+      responses:
+        "200":
+          description: Database insight examples
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Insights" }
+components:
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Conflict:
+      description: Operation conflicts with existing references
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    Error:
+      type: object
+      properties:
+        error: { type: string }
+      required: [error]
+    Category:
+      type: object
+      required: [id, name, description, productCount]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        description: { type: string }
+        productCount: { type: integer }
+    CategoryInput:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1 }
+        description: { type: string }
+    Supplier:
+      type: object
+      required: [id, name, contact, phone, email, location, productCount]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        contact: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        location: { type: string }
+        productCount: { type: integer }
+    SupplierInput:
+      type: object
+      required: [name, contact, phone, email, location]
+      properties:
+        name: { type: string, minLength: 1 }
+        contact: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        location: { type: string }
+    Customer:
+      type: object
+      required: [id, name, phone, email, location, orderCount]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        phone: { type: string }
+        email: { type: string }
+        location: { type: string }
+        orderCount: { type: integer }
+    CustomerInput:
+      type: object
+      required: [name, phone, email, location]
+      properties:
+        name: { type: string, minLength: 1 }
+        phone: { type: string }
+        email: { type: string }
+        location: { type: string }
+    Product:
+      type: object
+      required: [id, name, sku, category, supplier, purchasePrice, sellingPrice, stock, minStock, status, lastUpdated]
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        sku: { type: string }
+        category: { type: string }
+        supplier: { type: string }
+        purchasePrice: { type: number }
+        sellingPrice: { type: number }
+        stock: { type: integer }
+        minStock: { type: integer }
+        status:
+          type: string
+          enum: [In Stock, Low Stock, Out of Stock]
+        lastUpdated: { type: string }
+    ProductInput:
+      type: object
+      required: [name, sku, category, supplier, purchasePrice, sellingPrice, stock, minStock]
+      properties:
+        name: { type: string, minLength: 1 }
+        sku: { type: string, minLength: 1 }
+        category: { type: string, minLength: 1 }
+        supplier: { type: string, minLength: 1 }
+        purchasePrice: { type: number, minimum: 0 }
+        sellingPrice: { type: number, minimum: 0 }
+        stock: { type: integer, minimum: 0 }
+        minStock: { type: integer, minimum: 0 }
+    ProductUpdate:
+      allOf:
+        - $ref: "#/components/schemas/ProductInput"
+    Movement:
+      type: object
+      required: [id, product, type, quantity, previousStock, newStock, reference, user, date]
+      properties:
+        id: { type: integer }
+        product: { type: string }
+        type:
+          type: string
+          enum: [Purchase, Sale, Adjustment, Return]
+        quantity: { type: integer }
+        previousStock: { type: integer }
+        newStock: { type: integer }
+        reference: { type: string }
+        user: { type: string }
+        date: { type: string }
+    Dashboard:
+      type: object
+      required: [stats, categoryStock, recentMovements, lowStockProducts]
+      properties:
+        stats:
+          type: object
+          required: [products, categories, suppliers, stockValue, lowStock, outOfStock]
+          properties:
+            products: { type: integer }
+            categories: { type: integer }
+            suppliers: { type: integer }
+            stockValue: { type: number }
+            lowStock: { type: integer }
+            outOfStock: { type: integer }
+        categoryStock:
+          type: array
+          items:
+            type: object
+            required: [label, value]
+            properties:
+              label: { type: string }
+              value: { type: integer }
+        recentMovements:
+          type: array
+          items: { $ref: "#/components/schemas/Movement" }
+        lowStockProducts:
+          type: array
+          items: { $ref: "#/components/schemas/Product" }
+    Reports:
+      type: object
+      required: [inventoryValue, totalStock, salesTotal, purchaseTotal, topProducts, supplierSpend]
+      properties:
+        inventoryValue: { type: number }
+        totalStock: { type: integer }
+        salesTotal: { type: number }
+        purchaseTotal: { type: number }
+        topProducts:
+          type: array
+          items:
+            type: object
+            required: [name, units, revenue]
+            properties:
+              name: { type: string }
+              units: { type: integer }
+              revenue: { type: number }
+        supplierSpend:
+          type: array
+          items:
+            type: object
+            required: [name, amount]
+            properties:
+              name: { type: string }
+              amount: { type: number }
+    Insights:
+      type: object
+      required: [queries, relationships]
+      properties:
+        queries:
+          type: array
+          items:
+            type: object
+            required: [concept, title, sql, explanation]
+            properties:
+              concept: { type: string }
+              title: { type: string }
+              sql: { type: string }
+              explanation: { type: string }
+        relationships:
+          type: array
+          items:
+            type: object
+            required: [from, to, relationship]
+            properties:
+              from: { type: string }
+              to: { type: string }
+              relationship: { type: string }
+
