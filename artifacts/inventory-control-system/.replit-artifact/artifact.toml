@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "Inventory Control System"
+description = "A practical inventory management application for a small business, built as a DBMS semester project with product, stock, supplier, purchase, sales, reports, and database-insight workflows."
+version = "1.0.0"
+id = "artifacts/inventory-control-system"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 19039
+
+[services.development]
+run = "pnpm --filter @workspace/inventory-control-system run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/inventory-control-system", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/inventory-control-system/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "19039"
+BASE_PATH = "/"
